@@ -15,6 +15,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/gobuffalo/uuid"
 )
 
 // DecodeHookFunc is the callback function that can be used for
@@ -884,7 +886,14 @@ func (d *Decoder) decodeArray(name string, data interface{}, val reflect.Value) 
 	arrayType := reflect.ArrayOf(valType.Len(), valElemType)
 
 	valArray := val
-
+	// catch uuids passed as strings
+	if dataValKind == reflect.String {
+		var err error
+		data, err = uuid.FromString(data.(string))
+		if err != nil {
+			return err
+		}
+	}
 	if valArray.Interface() == reflect.Zero(valArray.Type()).Interface() || d.config.ZeroFields {
 		// Check input type
 		if dataValKind != reflect.Array && dataValKind != reflect.Slice {
